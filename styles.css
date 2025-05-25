@@ -1,0 +1,139 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.menu-left {
+    width: 80px;
+    background-color: #f1f1f1;
+    height: calc(100vh - 60px);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    justify-content: flex-start;
+    margin: 0;
+    position: absolute;
+    left: 0;
+    top: 50px;
+}
+
+.right-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin-left: 80px; /* Reduced from 120px to match menu-bar width */
+    padding-top: 0;
+}
+
+.menu-top {
+    height: 50px;
+    width: 100%;
+    background-color: #f1f1f1;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    justify-content: flex-start; /* Change to left alignment */
+    padding-left: 95px; /* Add padding to align with grid content */
+    padding-right: 20px;
+}
+
+#clearBtn {
+    padding: 8px 15px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    /* Remove the commented out margin-left */
+}
+
+.content {
+    flex: 1;
+    padding: 0;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    overflow: auto;
+    margin-top: 50px;  /* Add margin to position below the menu-top */
+    margin-left: 80px;  /* Add margin to position to the right of menu-left */
+}
+
+.menu-button {
+    width: 60px;
+    height: 60px;
+    margin: 5px 0;
+    border: 2px solid black;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.menu-button:first-child {
+    margin-top: 0; /* Remove top margin from first button */
+}
+
+.menu-button:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#gridCanvas {
+    border: 1px solid #000;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    display: block;
+    margin: 0;
+    max-width: 100%;
+    max-height: 100%;
+    margin-top: 0;
+}
+
+.btn-1 { background-color: #e74c3c; }
+.btn-2 { background-color: #3498db; }
+.btn-3 { background-color: #2ecc71; }
+.btn-4 { background-color: #f39c12; }
+.btn-5 { background-color: #9b59b6; }
+.btn-6 { background-color: #1abc9c; }
+.btn-7 { background-color: #e67e22; }
+.btn-8 { background-color: #34495e; }
+
+/* Add these styles to make button colors match block colors */
+.menu-button.btn-1 { background-color: #FF5733; } /* Red-orange for Addition */
+.menu-button.btn-2 { background-color: #33FF57; } /* Green for Subtraction */
+.menu-button.btn-3 { background-color: #3357FF; } /* Blue for Multiplication */
+.menu-button.btn-4 { background-color: #F3FF33; } /* Yellow for Division */
+.menu-button.btn-5 { background-color: #FF33F3; } /* Pink for Equals */
+.menu-button.btn-6 { background-color: #33FFF3; } /* Cyan for Square Root */
+.menu-button.btn-7 { background-color: #8033FF; } /* Purple for Square */
+.menu-button.btn-8 { background-color: #FF8033; } /* Orange for Integral */
+
+/* Add contrasting text color for better readability */
+.menu-button {
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+}
+
+/* For the yellow button, use black text for better contrast */
+.menu-button.btn-4 {
+    color: black;
+    text-shadow: none;
+}
