@@ -2,7 +2,7 @@
 <html lang="en">
     
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8">the data
     <title>FQAuthor</title>
     <link rel="stylesheet" href="styles.css">
     <!-- Add MathJax for better math symbol rendering -->
@@ -13,19 +13,20 @@
 <body>
 
     <div class="menu-left">
-        <button class="menu-button btn-1">+ Addition</button>
-        <button class="menu-button btn-2">− Subtraction</button>
-        <button class="menu-button btn-3">× Multiplication</button>
-        <button class="menu-button btn-4">÷ Division</button>
-        <button class="menu-button btn-5">= Equals</button>
-        <button class="menu-button btn-6">√ Square Root</button>
-        <button class="menu-button btn-7">x² Square</button>
-        <button class="menu-button btn-8">∫ Integral</button>
+        <button class="menu-button btn-1" data-symbol="+" data-text="Addition"></button>
+        <button class="menu-button btn-2" data-symbol="−" data-text="Subtraction"></button>
+        <button class="menu-button btn-3" data-symbol="×" data-text="Multiplication"></button>
+        <button class="menu-button btn-4" data-symbol="÷" data-text="Division"></button>
+        <button class="menu-button btn-5" data-symbol="=" data-text="Equals"></button>
+        <button class="menu-button btn-6" data-symbol="√" data-text="Square Root"></button>
+        <button class="menu-button btn-7" data-symbol="x²" data-text="Square"></button>
+        <button class="menu-button btn-8" data-symbol="↧" data-text="Substitute"></button>
+        <button class="menu-button btn-9" data-symbol="⇰" data-text="Gegeven"></button>
     </div>
     
     <div class="menu-top">
         <button id="clearBtn">Clear</button>
-        <button id="trashBtn">🗑️ Trash</button>
+        <button id="trashBtn"><span>🗑️</span> Trash</button>
     </div>
 
     <div class="content">
@@ -35,6 +36,6 @@
     <!-- Add mathBlock.js before grid.js -->
     <script src="mathBlock.js"></script>
     <script src="grid.js"></script>
-
+    <!-- Remove the test script that's overriding your grid -->
 </body>
 </html>

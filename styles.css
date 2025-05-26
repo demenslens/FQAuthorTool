@@ -84,6 +84,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative; /* For positioning the tooltip */
 }
 
 .menu-button:first-child {
@@ -93,6 +94,34 @@ body {
 .menu-button:hover {
     transform: translateX(5px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Hide the text part of the button content */
+.menu-button::before {
+    content: attr(data-symbol);
+    font-size: 24px;
+}
+
+/* Create tooltip for the full text */
+.menu-button::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 70px; /* Position to the right of the button */
+    background-color: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    z-index: 100;
+}
+
+/* Show tooltip on hover */
+.menu-button:hover::after {
+    opacity: 1;
+    visibility: visible;
 }
 
 #gridCanvas {
@@ -136,4 +165,19 @@ body {
 .menu-button.btn-4 {
     color: black;
     text-shadow: none;
+}
+
+/* Style for top menu buttons */
+.menu-top button {
+    width: 100px;
+    height: 40px;
+    margin: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Style for trash icon */
+#trashBtn span {
+    color: #333;
 }

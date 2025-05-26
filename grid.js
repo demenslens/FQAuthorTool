@@ -10,9 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Debug message
-    console.log('Grid initialization started');
-    
     // Grid cell size
     const GRID_SIZE = 60;
     
@@ -26,12 +23,16 @@ document.addEventListener('DOMContentLoaded', function() {
     let isDragging = false;
     let currentColor = null;
     let currentSymbol = null;
+    let blockType = ''; // Track the type of block to create
     
     // Preview block that follows the mouse
     let previewBlock = null;
     
     // Currently selected block (for deletion)
     let selectedBlock = null;
+    
+    // Track which button was clicked
+    let selectedButton = null;
     
     // Define button colors and symbols
     const buttonColors = {
@@ -42,7 +43,8 @@ document.addEventListener('DOMContentLoaded', function() {
         'btn-5': '#FF33F3', // Pink for Equals
         'btn-6': '#33FFF3', // Cyan for Square Root
         'btn-7': '#8033FF', // Purple for Square
-        'btn-8': '#FF8033'  // Orange for Integral
+        'btn-8': '#FF8033',  // Orange for Substitute
+        'btn-9': '#33B5FF'   // Light blue for Gegeven
     };
     
     const buttonSymbols = {
@@ -53,7 +55,8 @@ document.addEventListener('DOMContentLoaded', function() {
         'btn-5': '=',
         'btn-6': '√',
         'btn-7': 'x²',
-        'btn-8': '∫'
+        'btn-8': '↧',    // Substitute symbol (U+021A7)
+        'btn-9': '⇰'     // Gegeven symbol (U+021F0)
     };
     
     // Set up the canvas size
@@ -154,6 +157,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const menuButtons = document.querySelectorAll('.menu-button');
     menuButtons.forEach(button => {
         button.addEventListener('mousedown', (e) => {
+            // Store the selected button
+            selectedButton = button;
+            
             // Get the button's class to determine color and symbol
             const buttonClass = button.classList[1];
             
@@ -161,14 +167,16 @@ document.addEventListener('DOMContentLoaded', function() {
             currentColor = buttonColors[buttonClass];
             currentSymbol = buttonSymbols[buttonClass];
             
-            console.log('Button class:', buttonClass);
-            console.log('Mapped color:', currentColor);
-            console.log('Mapped symbol:', currentSymbol);
+            // Get block type from data-text attribute
+            blockType = button.getAttribute('data-text').toLowerCase().replace(/\s+/g, '_');
             
             isDragging = true;
             
             // Prevent default behavior
             e.preventDefault();
+            
+            // Change cursor to indicate dragging
+            canvas.style.cursor = 'crosshair';
             
             // Add document-level handlers
             document.addEventListener('mousemove', onMouseMove);
@@ -199,14 +207,24 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Create/update preview block
             if (!previewBlock) {
-                previewBlock = new MathBlock(snapped.x, snapped.y, transparentColor, currentSymbol);
+                // Pass all required parameters to the MathBlock constructor
+                previewBlock = new MathBlock(
+                    snapped.x,         // x position
+                    snapped.y,         // y position
+                    GRID_SIZE,         // width
+                    GRID_SIZE,         // height
+                    blockType,         // type - from data-text attribute
+                    currentSymbol      // symbol
+                );
+                previewBlock.color = transparentColor; // Set color after creation
                 previewBlock.textColor = 'black';
-                console.log('Created preview block:', previewBlock);
             } else {
-                previewBlock.moveTo(snapped.x, snapped.y);
+                previewBlock.x = snapped.x;
+                previewBlock.y = snapped.y;
                 previewBlock.color = transparentColor;
                 previewBlock.symbol = currentSymbol;
                 previewBlock.textColor = 'black';
+                previewBlock.updateConnectorPositions(); // Update connectors if moved
             }
             
             // Redraw
@@ -234,36 +252,43 @@ document.addEventListener('DOMContentLoaded', function() {
             // Snap to grid
             const snapped = snapToGrid(coords.x, coords.y);
             
-            // Create a new block at the final position with more transparent color
-            // Convert hex to rgba with opacity
-            const hexColor = currentColor;
-            const r = parseInt(hexColor.slice(1, 3), 16);
-            const g = parseInt(hexColor.slice(3, 5), 16);
-            const b = parseInt(hexColor.slice(5, 7), 16);
-            const transparentColor = `rgba(${r}, ${g}, ${b}, 0.5)`; // 50% opacity
+            // Create a new block at the final position using stored blockType
+            const newBlock = new MathBlock(
+                snapped.x,         // x position
+                snapped.y,         // y position
+                GRID_SIZE,         // width
+                GRID_SIZE,         // height
+                blockType,         // type - already normalized
+                currentSymbol      // symbol
+            );
             
-            const newBlock = new MathBlock(snapped.x, snapped.y, transparentColor, currentSymbol);
+            // Set color after creation
+            newBlock.color = currentColor;
             
-            // Assign a unique block number (reset to 1 if we reach 100)
+            // Assign a unique block number
             newBlock.blockNumber = blockCounter;
-            blockCounter = (blockCounter % 99) + 1; // Cycle from 1 to 99
+            blockCounter = (blockCounter % 99) + 1;
             
             // Set text color to black
             newBlock.textColor = 'black';
             
             blocks.push(newBlock);
-            console.log('Created permanent block at:', snapped.x, snapped.y, 'with number:', newBlock.blockNumber);
         }
         
         // Reset state
         isDragging = false;
         currentColor = null;
         currentSymbol = null;
+        selectedButton = null;
+        blockType = '';
         previewBlock = null;
         
         // Remove document handlers
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
+        
+        // Reset cursor
+        canvas.style.cursor = 'default';
         
         // Final redraw
         drawGrid();
@@ -288,7 +313,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Update selection
         selectedBlock = clickedBlock;
-        console.log('Selected block:', selectedBlock);
         
         // Redraw to show selection indicator
         drawGrid();
@@ -304,7 +328,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (index > -1) {
                 // Remove the block from the array
                 blocks.splice(index, 1);
-                console.log('Removed block at index:', index);
             }
             
             // Clear selection
@@ -313,8 +336,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Redraw
             drawGrid();
             drawBlocks();
-        } else {
-            console.log('No block selected to delete');
         }
     });
     
@@ -323,7 +344,6 @@ document.addEventListener('DOMContentLoaded', function() {
         blocks.length = 0; // Clear all blocks
         selectedBlock = null; // Clear selection
         blockCounter = 1; // Reset block counter
-        console.log('Cleared all blocks');
         drawGrid();
         drawBlocks();
     });
@@ -331,4 +351,103 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial setup
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
+    
+    // Variables for tracking block movement
+    let isMovingBlock = false;
+    let movingBlockOffset = { x: 0, y: 0 };
+    
+    // Add mouse events for moving blocks
+    canvas.addEventListener('mousedown', (e) => {
+        // If we're already dragging a new block from the menu, don't handle block movement
+        if (isDragging) return;
+        
+        const coords = getCanvasCoordinates(e);
+        
+        // Check if we clicked on a block
+        for (let i = blocks.length - 1; i >= 0; i--) {
+            if (blocks[i].contains(coords.x, coords.y)) {
+                // Select this block
+                selectedBlock = blocks[i];
+                
+                // Start moving the block
+                isMovingBlock = true;
+                
+                // Change cursor to grabbing hand
+                canvas.style.cursor = 'grabbing';
+                
+                // Calculate the offset from the mouse to the block's corner
+                // This ensures the block doesn't jump to have its corner at the mouse position
+                movingBlockOffset = {
+                    x: coords.x - selectedBlock.x,
+                    y: coords.y - selectedBlock.y
+                };
+                
+                // Prevent default behavior
+                e.preventDefault();
+                
+                // No need to check other blocks
+                break;
+            }
+        }
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+        const coords = getCanvasCoordinates(e);
+        
+        if (isMovingBlock && selectedBlock) {
+            // If we're moving a block, keep the grabbing cursor
+            canvas.style.cursor = 'grabbing';
+            
+            // Calculate new position, accounting for the initial click offset
+            const newX = coords.x - movingBlockOffset.x;
+            const newY = coords.y - movingBlockOffset.y;
+            
+            // Snap to grid
+            const snapped = snapToGrid(newX, newY);
+            
+            // Update block position
+            selectedBlock.x = snapped.x;
+            selectedBlock.y = snapped.y;
+            
+            // Update connector positions
+            selectedBlock.updateConnectorPositions();
+            
+            // Redraw
+            drawGrid();
+            drawBlocks();
+        } else if (!isDragging) {
+            // If we're not dragging a new block or moving an existing one,
+            // check if the mouse is over any block to show the grab cursor
+            let overBlock = false;
+            for (let i = blocks.length - 1; i >= 0; i--) {
+                if (blocks[i].contains(coords.x, coords.y)) {
+                    overBlock = true;
+                    break;
+                }
+            }
+            
+            // Change cursor based on whether we're over a block
+            canvas.style.cursor = overBlock ? 'grab' : 'default';
+        }
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+        // End moving block if we were moving one
+        if (isMovingBlock) {
+            isMovingBlock = false;
+            movingBlockOffset = { x: 0, y: 0 };
+            
+            // Reset cursor
+            canvas.style.cursor = 'default';
+            
+            // Redraw final position
+            drawGrid();
+            drawBlocks();
+        }
+    });
+    
+    // Prevent text selection during drag operations
+    canvas.addEventListener('dragstart', (e) => {
+        e.preventDefault();
+    });
 });
