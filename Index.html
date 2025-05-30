@@ -2,40 +2,55 @@
 <html lang="en">
     
 <head>
-    <meta charset="UTF-8">the data
+    <meta charset="UTF-8">
     <title>FQAuthor</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Add MathJax for better math symbol rendering -->
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 
 <body>
 
     <div class="menu-left">
-        <button class="menu-button btn-1" data-symbol="+" data-text="Addition"></button>
-        <button class="menu-button btn-2" data-symbol="−" data-text="Subtraction"></button>
-        <button class="menu-button btn-3" data-symbol="×" data-text="Multiplication"></button>
-        <button class="menu-button btn-4" data-symbol="÷" data-text="Division"></button>
-        <button class="menu-button btn-5" data-symbol="=" data-text="Equals"></button>
-        <button class="menu-button btn-6" data-symbol="√" data-text="Square Root"></button>
-        <button class="menu-button btn-7" data-symbol="x²" data-text="Square"></button>
-        <button class="menu-button btn-8" data-symbol="↧" data-text="Substitute"></button>
-        <button class="menu-button btn-9" data-symbol="⇰" data-text="Gegeven"></button>
+        <button class="menu-button btn-1" data-symbol="+" data-text="Addition" data-input="2"></button>
+        <button class="menu-button btn-2" data-symbol="−" data-text="Subtraction" data-input="2"></button>
+        <button class="menu-button btn-3" data-symbol="×" data-text="Multiplication" data-input="2"></button>
+        <button class="menu-button btn-4" data-symbol="÷" data-text="Division" data-input="2"></button>
+        <button class="menu-button btn-5" data-symbol="=" data-text="Equals" data-input="2"></button>
+        <button class="menu-button btn-6" data-symbol="√" data-text="Square Root" data-input="1"></button>
+        <button class="menu-button btn-7" data-symbol="x²" data-text="Square" data-input="1"></button>
+        <button class="menu-button btn-8" data-symbol="↧" data-text="Substitute" data-input="2"></button>
+        <button class="menu-button btn-9" data-symbol="⇰" data-text="Gegeven" data-input="0"></button>
     </div>
     
     <div class="menu-top">
-        <button id="clearBtn">Clear</button>
-        <button id="trashBtn"><span>🗑️</span> Trash</button>
+        <button class="menu-top-button" id="clearBtn">Clear</button>
+        <button class="menu-top-button" id="trashBtn"><span>🗑️</span> Trash</button>
+        <button class="menu-top-button" id="saveBtn">Save</button>
+        <button class="menu-top-button" id="loadBtn">Load</button>
+        <button class="menu-top-button" id="opdrachtBtn">Opdracht</button>
+        <button class="menu-top-button" id="editBtn">Edit</button>   
     </div>
 
     <div class="content">
         <canvas id="gridCanvas"></canvas>
     </div>
-    
-    <!-- Add mathBlock.js before grid.js -->
+
+    <!-- Initialize application namespace and constants -->
+    <script>
+        window.FQAuthor = {
+            Connection: null,
+            MathBlock: null,
+            GRID_SIZE: 60  // Add this constant first
+        };
+    </script>
+
+    <!-- Load core classes in correct dependency order -->
+    <script src="connection.js"></script>
     <script src="mathBlock.js"></script>
+    <script src="exercise.js"></script>
     <script src="grid.js"></script>
-    <!-- Remove the test script that's overriding your grid -->
+
+    <!-- Load MathJax after our app code -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </body>
 </html>

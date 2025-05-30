@@ -9,7 +9,6 @@ body {
 .menu-left {
     width: 80px;
     background-color: #f1f1f1;
-    height: calc(100vh - 60px);
     padding: 0;
     display: flex;
     flex-direction: column;
@@ -19,7 +18,8 @@ body {
     margin: 0;
     position: absolute;
     left: 0;
-    top: 50px;
+    top: 50px;  /* Align with bottom of top menu */
+
 }
 
 .right-content {
@@ -49,26 +49,18 @@ body {
     padding-right: 20px;
 }
 
-#clearBtn {
-    padding: 8px 15px;
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    /* Remove the commented out margin-left */
-}
-
 .content {
-    flex: 1;
-    padding: 0;
+    position: fixed;
+    top: 50px;
+    left: 80px;
+    right: 0;
+    bottom: 0;
+    overflow: auto;
+    background-color: #f5f5f5;
     display: flex;
     justify-content: flex-start;
     align-items: flex-start;
-    overflow: auto;
-    margin-top: 50px;  /* Add margin to position below the menu-top */
-    margin-left: 80px;  /* Add margin to position to the right of menu-left */
+    padding: 0;
 }
 
 .menu-button {
@@ -125,14 +117,13 @@ body {
 }
 
 #gridCanvas {
-    border: 1px solid #000;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 1200px;
+    height: 840px;
     background-color: white;
-    display: block;
+    border: 1px solid #ddd;
+    display: block;  /* Important */
     margin: 0;
-    max-width: 100%;
-    max-height: 100%;
-    margin-top: 0;
+    padding: 0;
 }
 
 .btn-1 { background-color: #e74c3c; }
@@ -167,17 +158,40 @@ body {
     text-shadow: none;
 }
 
-/* Style for top menu buttons */
-.menu-top button {
+/* Base styles for top menu buttons */
+.menu-top-button {
     width: 100px;
     height: 40px;
     margin: 5px;
     border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
+    border: 1px solid #d0d0d0;
+    transition: all 0.3s ease;
 }
 
-/* Style for trash icon */
-#trashBtn span {
-    color: #333;
+/* Case 1 & 2: Style for disabled buttons */
+.menu-top-button:disabled {
+    background-color: #e0e0e0;
+    color: #999999;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Case 1: Style for enabled Load and Opdracht buttons when app is empty */
+#loadBtn:not(:disabled),
+#opdrachtBtn:not(:disabled) {
+    background-color: #ffffff;
+    color: #000000;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Case 2: Style for enabled action buttons when app has content */
+#saveBtn:not(:disabled),
+#trashBtn:not(:disabled),
+#clearBtn:not(:disabled),
+#editBtn:not(:disabled) {
+    background-color: #ffffff;
+    color: #000000;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }

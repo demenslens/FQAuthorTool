@@ -1,233 +1,217 @@
 /**
- * MathBlock class that represents a 60x60 block on the grid with a math symbol
+ * MathBlock class representing a mathematical operation block
  */
-class MathBlock {
+window.FQAuthor.MathBlock = class MathBlock {
     /**
      * Create a new MathBlock
-     * @param {number} x - The x coordinate on the grid
-     * @param {number} y - The y coordinate on the grid
+     * @param {number} x - The x coordinate of the block
+     * @param {number} y - The y coordinate of the block
      * @param {number} width - The width of the block
      * @param {number} height - The height of the block
-     * @param {string} type - The type of the math operation
-     * @param {string} symbol - The math symbol to display in the block
+     * @param {string} type - The type of mathematical operation
+     * @param {string} symbol - The symbol to display in the block
+     * @param {number} inputs - The number of inputs for the block
      */
-    constructor(x, y, width, height, type, symbol) {
+    constructor(x, y, width, height, type, symbol, inputs) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        
-        // Ensure type is properly normalized
-        this.type = String(type).toLowerCase().replace(/\s+/g, '_');
-        console.log('MathBlock created with type:', this.type);
-        
+        this.type = type;
         this.symbol = symbol;
-        this.isDragging = false;
-        this.dragStartX = 0;
-        this.dragStartY = 0;
-        this.color = this.getColorForType();
-        this.borderRadius = 5;
+        this.inputs = inputs;
+        this.color = '#fff';
+        this.blockNumber = null;
+        this.isSelected = false; // Add this line
         
-        // Add output connector property
+        // Initialize expression label
+        this.expression = "Math Expression";
+        this.labelOffset = 30; // Distance below block
+        this.labelX = x + this.width + 65; // Position at end of dotted line
+        this.labelY = y + height + this.labelOffset; // Initial position
+        this.isDraggingLabel = false;
+
+        // Initialize connectors
+        this.updateConnectors();
+    }
+
+    updateConnectors() {
+        const connectorRadius = 5;
+        
+        // Store previous occupied states
+        const previousOccupied = {
+            output: this.outputConnector?.occupied || false,
+            inputs: this.inputConnectors?.map(conn => conn.occupied) || []
+        };
+        
+        // Update output connector
         this.outputConnector = {
             x: this.x + this.width,
             y: this.y + this.height/2,
-            radius: 3
+            radius: connectorRadius,
+            occupied: previousOccupied.output
         };
-        
-        // Add input connectors based on block type
-        this.inputConnectors = [];
-        
-        // Log the exact type value for debugging
-        console.log('Block type for connector decision:', this.type);
-        
-        // Determine number of input connectors based on block type
-        if (this.type === 'square' || this.type === 'square_root') {
-            // Square and Square Root have one input connector in the middle
-            console.log('Creating single input connector for:', this.type);
-            this.inputConnectors = [{
+
+        // Update input connectors
+        const newInputConnectors = [];
+        if (this.inputs === 1) {
+            newInputConnectors.push({
                 x: this.x,
                 y: this.y + this.height/2,
-                radius: 3
-            }];
-        } else if (this.type === 'gegeven') {
-            // Gegeven has no input connectors
-            console.log('No input connectors for:', this.type);
-            this.inputConnectors = [];
-        } else {
-            // All others have 2 input connectors (15px from top and bottom)
-            console.log('Creating two input connectors for:', this.type);
-            this.inputConnectors = [
-                {
-                    x: this.x,
-                    y: this.y + 15,
-                    radius: 3
-                },
-                {
-                    x: this.x,
-                    y: this.y + this.height - 15,
-                    radius: 3
-                }
-            ];
+                radius: connectorRadius,
+                occupied: previousOccupied.inputs[0] || false
+            });
+        } else if (this.inputs === 2) {
+            newInputConnectors.push({
+                x: this.x,
+                y: this.y + 12,
+                radius: connectorRadius,
+                occupied: previousOccupied.inputs[0] || false
+            });
+            newInputConnectors.push({
+                x: this.x,
+                y: this.y + this.height - 12,
+                radius: connectorRadius,
+                occupied: previousOccupied.inputs[1] || false
+            });
         }
+        this.inputConnectors = newInputConnectors;
     }
-    
+
     /**
-     * Update the connector positions when the block is moved
-     */
-    updateConnectorPositions() {
-        // Update output connector
-        this.outputConnector.x = this.x + this.width;
-        this.outputConnector.y = this.y + this.height/2;
-        
-        // Update input connectors based on type
-        if (this.type === 'square' || this.type === 'square_root') {
-            // Square and Square Root have one input connector in the middle
-            if (this.inputConnectors.length > 0) {
-                this.inputConnectors[0].x = this.x;
-                this.inputConnectors[0].y = this.y + this.height/2;
-            }
-        } else if (this.type === 'gegeven') {
-            // Gegeven has no input connectors
-        } else {
-            // All others have 2 input connectors (15px from top and bottom)
-            if (this.inputConnectors.length >= 2) {
-                this.inputConnectors[0].x = this.x;
-                this.inputConnectors[0].y = this.y + 15;
-                
-                this.inputConnectors[1].x = this.x;
-                this.inputConnectors[1].y = this.y + this.height - 15;
-            }
-        }
-    }
-    
-    /**
-     * Draw the block on the canvas
-     * @param {CanvasRenderingContext2D} ctx - The canvas context to draw on
+     * Draw the block and its connectors on the canvas
+     * @param {CanvasRenderingContext2D} ctx - The canvas rendering context
      */
     draw(ctx) {
-        // Draw the main block
+        // Update connector positions
+        this.updateConnectors();
+        
+        ctx.save();
+        
+        // Draw main block with selection state
         ctx.fillStyle = this.color;
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 2;
-        
-        // Draw rounded rectangle
-        ctx.beginPath();
-        ctx.moveTo(this.x + this.borderRadius, this.y);
-        ctx.lineTo(this.x + this.width - this.borderRadius, this.y);
-        ctx.quadraticCurveTo(this.x + this.width, this.y, this.x + this.width, this.y + this.borderRadius);
-        ctx.lineTo(this.x + this.width, this.y + this.height - this.borderRadius);
-        ctx.quadraticCurveTo(this.x + this.width, this.y + this.height, this.x + this.width - this.borderRadius, this.y + this.height);
-        ctx.lineTo(this.x + this.borderRadius, this.y + this.height);
-        ctx.quadraticCurveTo(this.x, this.y + this.height, this.x, this.y + this.height - this.borderRadius);
-        ctx.lineTo(this.x, this.y + this.borderRadius);
-        ctx.quadraticCurveTo(this.x, this.y, this.x + this.borderRadius, this.y);
-        ctx.closePath();
-        
-        ctx.fill();
-        ctx.stroke();
-        
-        // Draw the symbol in the center of the block
-        ctx.fillStyle = 'white';
+        ctx.strokeStyle = this.isSelected ? '#ff0000' : '#666';
+        ctx.lineWidth = this.isSelected ? 3 : 2;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
+
+        // Draw symbol
+        ctx.fillStyle = '#000';
         ctx.font = '24px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        const centerX = this.x + (this.width / 2);
-        const centerY = this.y + (this.height / 2);
-        ctx.fillText(this.symbol, centerX, centerY);
-        
-        // Draw the output connector circle
-        ctx.beginPath();
-        ctx.arc(this.outputConnector.x, this.outputConnector.y, this.outputConnector.radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'white';
-        ctx.fill();
-        ctx.strokeStyle = 'black';
+        ctx.fillText(this.symbol, this.x + this.width/2, this.y + this.height/2);
+
+        // Draw block number if exists
+        if (this.blockNumber !== null) {
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(this.blockNumber, this.x + 5, this.y + 5);
+        }
+
+        // Draw connectors
+        ctx.fillStyle = '#fff';
+        ctx.strokeStyle = '#666'; // Add border for visibility
         ctx.lineWidth = 1;
+
+        // Draw output connector
+        ctx.beginPath();
+        ctx.arc(this.outputConnector.x, this.outputConnector.y, 
+                this.outputConnector.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke(); // Add stroke to make white connectors visible
+
+        // Draw input connectors
+        this.inputConnectors.forEach(conn => {
+            ctx.beginPath();
+            ctx.arc(conn.x, conn.y, conn.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke(); // Add stroke to make white connectors visible
+        });
+
+        // Draw expression label and connecting line
+        ctx.setLineDash([5, 3]); // Dotted line
+        ctx.beginPath();
+        ctx.moveTo(this.outputConnector.x, this.outputConnector.y);
+        ctx.lineTo(this.labelX - 5, this.labelY); // Connect to start of label
         ctx.stroke();
         
-        // Draw the input connector circles
-        this.inputConnectors.forEach(connector => {
-            ctx.beginPath();
-            ctx.arc(connector.x, connector.y, connector.radius, 0, Math.PI * 2);
-            ctx.fillStyle = 'white';
-            ctx.fill();
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-        });
+        // Draw only the connected expression text
+        ctx.setLineDash([]); // Reset line style
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = this.isDraggingLabel ? '#ff0000' : '#000';
+        ctx.fillText(this.expression, this.labelX, this.labelY);
+
+        ctx.restore();
     }
-    
-    // Update method to ensure connector positions are updated when block is moved
-    update(newX, newY) {
-        this.x = newX;
-        this.y = newY;
-        this.updateConnectorPositions();
-    }
-    
+
     /**
-     * Check if a point is inside this block
-     * @param {number} x - The x coordinate to check
-     * @param {number} y - The y coordinate to check
-     * @returns {boolean} - True if the point is inside the block
+     * Check if a point is inside the block
+     * @param {number} x - X coordinate to check
+     * @param {number} y - Y coordinate to check
+     * @returns {boolean} True if point is inside block
      */
     contains(x, y) {
         return x >= this.x && x <= this.x + this.width &&
                y >= this.y && y <= this.y + this.height;
     }
-    
+
     /**
-     * Start dragging the block
-     * @param {number} x - The x coordinate where dragging started
-     * @param {number} y - The y coordinate where dragging started
+     * Get the connector type at a specific position
+     * @param {number} x - X coordinate of the position
+     * @param {number} y - Y Coordinate of the position
+     * @returns {string|null} The connector type ('input1', 'input2', or 'output'), or null if none
      */
-    startDrag(x, y) {
-        this.isDragging = true;
-        this.dragStartX = x - this.x;
-        this.dragStartY = y - this.y;
+    getConnectorAt(x, y) {
+        const hitRadius = 8; // Slightly larger than visual radius for easier clicking
+        
+        // Check output connector
+        if (Math.hypot(x - this.outputConnector.x, y - this.outputConnector.y) <= hitRadius) {
+            return 'output';
+        }
+        
+        // Check input connectors
+        for (let i = 0; i < this.inputConnectors.length; i++) {
+            const conn = this.inputConnectors[i];
+            if (Math.hypot(x - conn.x, y - conn.y) <= hitRadius) {
+                return `input${i + 1}`;
+            }
+        }
+        
+        return null;
     }
-    
-    /**
-     * Drag the block to a new position
-     * @param {number} x - The new x coordinate
-     * @param {number} y - The new y coordinate
-     */
-    drag(x, y) {
-        if (this.isDragging) {
-            this.x = x - this.dragStartX;
-            this.y = y - this.dragStartY;
-            this.updateConnectorPositions(); // Update connector positions while dragging
+
+    isOverLabel(x, y) {
+        const ctx = document.createElement('canvas').getContext('2d');
+        ctx.font = '16px Arial';
+        const labelWidth = ctx.measureText(this.expression).width;
+        const labelHeight = 20; // Approximate text height
+        return x >= this.labelX - labelWidth/2 &&
+               x <= this.labelX + labelWidth/2 &&
+               y >= this.labelY - labelHeight/2 &&
+               y <= this.labelY + labelHeight/2;
+    }
+
+    // Add method to check if point is over the connected label
+    isOverConnectedLabel(x, y) {
+        const ctx = window.FQAuthor.ctx;
+        ctx.font = '14px Arial';
+        const labelWidth = ctx.measureText(this.expression).width;
+        const labelHeight = 20; // Approximate text height
+        
+        return x >= this.labelX - 5 && // Add small padding for easier selection
+               x <= this.labelX + labelWidth + 5 &&
+               y >= this.labelY - labelHeight/2 &&
+               y <= this.labelY + labelHeight/2;
+    }
+
+    // Update label position when block moves
+    updateLabelPosition() {
+        if (!this.isDraggingLabel) {
+            this.labelX = this.x + this.width + 65;
+            this.labelY = this.y + this.height + this.labelOffset;
         }
     }
-    
-    /**
-     * End dragging the block
-     */
-    endDrag() {
-        this.isDragging = false;
-    }
-    
-    /**
-     * Get the color associated with the block type
-     * @returns {string} - The color for the block type
-     */
-    getColorForType() {
-        const colors = {
-            'addition': '#FF5733',
-            'subtraction': '#33FF57',
-            'multiplication': '#3357FF',
-            'division': '#F3FF33',
-            'equals': '#FF33F3',
-            'square_root': '#33FFF3',
-            'square': '#8033FF',
-            'substitute': '#FF8033',
-            'gegeven': '#33B5FF'
-        };
-        
-        return colors[this.type] || '#333333';
-    }
-}
-
-// Export the MathBlock class for use in other files
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { MathBlock };
 }
